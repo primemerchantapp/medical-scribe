@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pediatric SOAP Note</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --danger-color: #ea4335;
+            --background-color: #1a1a1a;
+            --surface-color: #2d2d2d;
+            --border-color: #404040;
+            --text-color: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --border-radius: 8px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+        }
+        body {
+            font-family: 'Lato', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, #f9f9f9, #ffffff);
+            color: #333;
+            overflow-x: hidden;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .container>h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            font-size: 0.8rem;
+        }
+
+        textarea,
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            font-family: 'Lato', sans-serif;
+            resize: vertical;
+        }
+
+        textarea::placeholder,
+        input[type="text"]::placeholder,
+        input[type="number"]::placeholder,
+        input[type="date"]::placeholder,
+        select::placeholder {
+            font-size: 0.8rem;
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        textarea {
+            height: 100px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #777;
+            font-size: 0.8rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+
+        .header-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .header-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            color: #555;
+            flex: 1 1 300px;
+        }
+
+        .header-info strong {
+            color: #333;
+        }
+
+        .placeholder {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: bold;
+            display: block;
+        }
+
+        .signature-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .signature-upload input[type="file"] {
+            margin-bottom: 5px;
+        }
+
+        .signature-upload img {
+            max-width: 200px;
+            max-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .sig-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .export-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .export-buttons button {
+            padding: 10px 15px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .export-buttons button:hover {
+            background-color: #367c39;
+        }
+
+        #scribeHistory {
+            margin-top: 20px;
+            border-top: 2px solid #ddd;
+            padding-top: 10px;
+        }
+
+        #scribeHistory ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        #scribeHistory li {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .container>h1 {
+                font-size: 1rem;
+            }
+
+            h2 {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-info">
+            <p><strong>Title:</strong> <input type="text" id="title" placeholder="Enter Title"></p>
+            <p><strong>Patient Name:</strong> <input type="text" id="patientName" placeholder="Patient Name"></p>
+            <p><strong>Assigned Medical Practitioner:</strong> <input type="text" id="assignedMedicalPractitioner" placeholder="Assigned Medical Practitioner"></p>
+            <p><strong>Conducted on:</strong> <input type="text" id="conductedOn" placeholder="Conducted on"></p>
+        </div>
+        <div class="header-info">
+            <p><strong>Location:</strong> <input type="text" id="location" placeholder="Location"></p>
+        </div>
+
+        <div class="section">
+            <h2>Subjective Data</h2>
+            <div class="grid">
+                <div>
+                    <label for="age">Age:</label>
+                    <input type="text" id="age" value="" placeholder="Age">
+                </div>
+                <div>
+                    <label for="race">Nationality:</label>
+                    <input type="text" id="race" value="" placeholder="Nationality">
+                </div>
+                <div>
+                    <label for="gender">Gender:</label>
+                    <input type="text" id="gender" value="" placeholder="Gender">
+                </div>
+            </div>
+            <div>
+                <label for="chiefComplaint">Chief Complaint:</label>
+                <textarea id="chiefComplaint" placeholder="Patient presents with a complaint of..."></textarea>
+            </div>
+            <div>
+                <label for="historyOfIllness">History of Present Illness:</label>
+                <textarea id="historyOfIllness" placeholder="Patient's symptoms started..."></textarea>
+            </div>
+            <div>
+                <label for="pastMedicalHistory">Past Medical History:</label>
+                <textarea id="pastMedicalHistory" placeholder="Allergies: None. Current medication: None. Injuries: None. Hospitalizations: None. Surgeries: None"></textarea>
+            </div>
+            <div>
+                <label for="familyHistory">Family History:</label>
+                <textarea id="familyHistory" placeholder="None relevant to the current condition"></textarea>
+            </div>
+            <div>
+                <label for="socialHistory">Social History:</label>
+                <textarea id="socialHistory" placeholder="Patient lives with..."></textarea>
+            </div>
+            <div>
+                <label for="reviewOfSystems">Review of Systems:</label>
+                <textarea id="reviewOfSystems" placeholder="The patient is experiencing..."></textarea>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Objective Data</h2>
+            <div class="grid grid-4">
+                <div>
+                    <label for="height">Height (in):</label>
+                    <input type="text" id="height" value="" placeholder="Height (in)">
+                </div>
+                <div>
+                    <label for="weight">Weight (lbs):</label>
+                    <input type="text" id="weight" value="" placeholder="Weight (lbs)">
+                </div>
+                <div>
+                    <label for="bmi">BMI:</label>
+                    <input type="text" id="bmi" value="" placeholder="BMI">
+                </div>
+                <div>
+                    <label for="temperature">Temperature:</label>
+                    <input type="text" id="temperature" value="" placeholder="Temperature">
+                </div>
+                <div>
+                    <label for="bloodPressure">Blood Pressure (BP):</label>
+                    <input type="text" id="bloodPressure" value="" placeholder="Blood Pressure (BP)">
+                </div>
+            </div>
+            <div>
+                <label for="generalAppearance">General Appearance:</label>
+                <textarea id="generalAppearance" placeholder="Patient appears..."></textarea>
+            </div>
+            <div>
+                <label for="eent">EENT (Eyes, Ears, Nose, Throat):</label>
+                <textarea id="eent" placeholder="The eyes, ears, nose, and throat are..."></textarea>
+            </div>
+            <div>
+                <label for="cardiovascular">Cardiovascular:</label>
+                <textarea id="cardiovascular" placeholder="The heart sounds are..."></textarea>
+            </div>
+            <div>
+                <label for="respiratory">Respiratory:</label>
+                <textarea id="respiratory" placeholder="The lung sounds are..."></textarea>
+            </div>
+            <div>
+                <label for="integument">Integument/Lymphatic Inspection:</label>
+                <textarea id="integument" placeholder="The skin is..."></textarea>
+            </div>
+            <div>
+                <label for="labResults">Laboratory Results:</label>
+                <textarea id="labResults" placeholder="The results of the blood tests indicate..."></textarea>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Assessment</h2>
+            <div>
+                <label for="generalObservations">General Observations:</label>
+                <textarea id="generalObservations" placeholder="Based on the patient's symptoms and physical examination..."></textarea>
+            </div>
+            <div>
+                <label for="differentialDiagnosis">Differential Diagnosis:</label>
+                <textarea id="differentialDiagnosis" placeholder="The likely differential diagnosis includes..."></textarea>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Plan</h2>
+            <div>
+                <label for="treatmentPlan">Treatment Plan:</label>
+                <textarea id="treatmentPlan" placeholder="The patient will be treated with..."></textarea>
+            </div>
+            <div>
+                <label for="followUp">Follow-up:</label>
+                <textarea id="followUp" placeholder="The patient will follow up in..."></textarea>
+            </div>
+            <div>
+                <label for="education">Education:</label>
+                <textarea id="education" placeholder="The patient and family will be educated about..."></textarea>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Completion</h2>
+            <div class="grid">
+                <div class="sig-container" title="Name & Signature of Attending Medical Practitioner">
+                    <label>Name & Signature of Attending Medical Practitioner:</label>
+                    <div class="signature-upload">
+                        <input type="file" id="signatureUpload" accept="image/png">
+                        <img id="signatureImage" style="display: none;" alt="Signature">
+                        <input type="text" id="printedName" placeholder="Enter Printed Name" title="Enter Printed Name">
+                    </div>
+                </div>
+                <div>
+                    <label for="date">Date:</label>
+                    <input type="text" id="date" value="" placeholder="Date">
+                </div>
+            </div>
+            <div class="export-buttons">
+                <button id="saveButton">Save</button>
+            </div>
+            <div id="scribeHistory">
+                <h2>Scribe History</h2>
+                <ul></ul>
+            </div>
+        </div>
+
+        <!-- Email Input Field -->
+        <div class="section">
+            <h2>Email Scribe</h2>
+            <div>
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" placeholder="Enter email address">
+            </div>
+            <div class="export-buttons">
+                <button id="emailButton">Send via Email</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include userdata.js -->
+    <script>
+        // Patient data
+        const patientData = {
+            title: "Pediatric SOAP Note",
+            patientName: "John Doe",
+            assignedMedicalPractitioner: "Dr. Smith",
+            conductedOn: "2023-10-01",
+            location: "Main Hospital",
+            age: "10",
+            race: "Caucasian",
+            gender: "Male",
+            chiefComplaint: "Severe headache with nausea and vomiting.",
+            historyOfIllness: "Headache started suddenly, rated 8/10 in severity.",
+            pastMedicalHistory: "Allergy to penicillin, asthma.",
+            familyHistory: "No relevant family history.",
+            socialHistory: "Lives with parents and two siblings.",
+            reviewOfSystems: "Fatigue and loss of appetite.",
+            height: "55",
+            weight: "70",
+            bmi: "22",
+            temperature: "98.6",
+            bloodPressure: "120/80",
+            generalAppearance: "Appears uncomfortable.",
+            eent: "Normal.",
+            cardiovascular: "Normal heart sounds.",
+            respiratory: "Clear lung sounds.",
+            integument: "No lesions or rashes.",
+            labResults: "Slightly elevated white blood cell count.",
+            generalObservations: "Likely migraines or tension headaches.",
+            differentialDiagnosis: "Migraines, tension headaches, viral infections.",
+            treatmentPlan: "Ibuprofen and rest.",
+            followUp: "Follow up in 2 days.",
+            education: "Educated on headache causes and prevention.",
+            printedName: "Dr. Smith",
+            date: "2023-10-01"
+        };
+
+        // Function to load patient data into the form
+        function loadPatientData() {
+            document.getElementById('title').value = patientData.title;
+            document.getElementById('patientName').value = patientData.patientName;
+            document.getElementById('assignedMedicalPractitioner').value = patientData.assignedMedicalPractitioner;
+            document.getElementById('conductedOn').value = patientData.conductedOn;
+            document.getElementById('location').value = patientData.location;
+            document.getElementById('age').value = patientData.age;
+            document.getElementById('race').value = patientData.race;
+            document.getElementById('gender').value = patientData.gender;
+            document.getElementById('chiefComplaint').value = patientData.chiefComplaint;
+            document.getElementById('historyOfIllness').value = patientData.historyOfIllness;
+            document.getElementById('pastMedicalHistory').value = patientData.pastMedicalHistory;
+            document.getElementById('familyHistory').value = patientData.familyHistory;
+            document.getElementById('socialHistory').value = patientData.socialHistory;
+            document.getElementById('reviewOfSystems').value = patientData.reviewOfSystems;
+            document.getElementById('height').value = patientData.height;
+            document.getElementById('weight').value = patientData.weight;
+            document.getElementById('bmi').value = patientData.bmi;
+            document.getElementById('temperature').value = patientData.temperature;
+            document.getElementById('bloodPressure').value = patientData.bloodPressure;
+            document.getElementById('generalAppearance').value = patientData.generalAppearance;
+            document.getElementById('eent').value = patientData.eent;
+            document.getElementById('cardiovascular').value = patientData.cardiovascular;
+            document.getElementById('respiratory').value = patientData.respiratory;
+            document.getElementById('integument').value = patientData.integument;
+            document.getElementById('labResults').value = patientData.labResults;
+            document.getElementById('generalObservations').value = patientData.generalObservations;
+            document.getElementById('differentialDiagnosis').value = patientData.differentialDiagnosis;
+            document.getElementById('treatmentPlan').value = patientData.treatmentPlan;
+            document.getElementById('followUp').value = patientData.followUp;
+            document.getElementById('education').value = patientData.education;
+            document.getElementById('printedName').value = patientData.printedName;
+            document.getElementById('date').value = patientData.date;
+        }
+
+        // Automatically load the patient data when the script is loaded
+        window.onload = loadPatientData;
+    </script>
+
+    <!-- Firebase and Firestore Integration -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBe9a58zaQCrBSGeWwcIVa_PnZABoH6zV4",
+            authDomain: "tudds-ccd0wn.firebaseapp.com",
+            databaseURL: "https://tudds-ccd0wn-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tudds-ccd0wn",
+            storageBucket: "tudds-ccd0wn.appspot.com",
+            messagingSenderId: "786974954352",
+            appId: "1:786974954352:web:696d4fce818f14659bb5b5",
+            measurementId: "G-CEQL4E8CW3"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to save scribe data to Firestore
+        async function saveScribeToFirestore() {
+            const scribeData = {
+                title: document.getElementById('title').value,
+                patientName: document.getElementById('patientName').value,
+                assignedMedicalPractitioner: document.getElementById('assignedMedicalPractitioner').value,
+                conductedOn: document.getElementById('conductedOn').value,
+                location: document.getElementById('location').value,
+                age: document.getElementById('age').value,
+                race: document.getElementById('race').value,
+                gender: document.getElementById('gender').value,
+                chiefComplaint: document.getElementById('chiefComplaint').value,
+                historyOfIllness: document.getElementById('historyOfIllness').value,
+                pastMedicalHistory: document.getElementById('pastMedicalHistory').value,
+                familyHistory: document.getElementById('familyHistory').value,
+                socialHistory: document.getElementById('socialHistory').value,
+                reviewOfSystems: document.getElementById('reviewOfSystems').value,
+                height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value,
+                bmi: document.getElementById('bmi').value,
+                temperature: document.getElementById('temperature').value,
+                bloodPressure: document.getElementById('bloodPressure').value,
+                generalAppearance: document.getElementById('generalAppearance').value,
+                eent: document.getElementById('eent').value,
+                cardiovascular: document.getElementById('cardiovascular').value,
+                respiratory: document.getElementById('respiratory').value,
+                integument: document.getElementById('integument').value,
+                labResults: document.getElementById('labResults').value,
+                generalObservations: document.getElementById('generalObservations').value,
+                differentialDiagnosis: document.getElementById('differentialDiagnosis').value,
+                treatmentPlan: document.getElementById('treatmentPlan').value,
+                followUp: document.getElementById('followUp').value,
+                education: document.getElementById('education').value,
+                printedName: document.getElementById('printedName').value,
+                date: document.getElementById('date').value,
+                created_at: serverTimestamp() // Add created_at timestamp
+            };
+
+            try {
+                // Add a new document to the "scribe_documents" collection
+                const docRef = await addDoc(collection(db, "scribe_documents"), scribeData);
+                console.log("Document written with ID: ", docRef.id);
+                alert("Scribe saved successfully!");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                alert("Failed to save scribe. Please try again.");
+            }
+        }
+
+        // Event listener for the Save button
+        document.getElementById('saveButton').addEventListener('click', saveScribeToFirestore);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Conversation</title>
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --danger-color: #ea4335;
+            --background-color: #1a1a1a;
+            --surface-color: #2d2d2d;
+            --border-color: #404040;
+            --text-color: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --border-radius: 8px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        #conversation-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #2d2d2d;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            animation: fadeIn 0.3s ease-in;
+        }
+        .user-message {
+            background-color: #004d40;
+            margin-left: 20%;
+            border: 1px solid #00796b;
+        }
+        .assistant-message {
+            background-color: #37474f;
+            margin-right: 20%;
+            border: 1px solid #546e7a;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #status {
+            text-align: center;
+            color: #78909c;
+            font-style: italic;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="conversation-container">
+        <div id="messages">
+            <div class="message user-message">
+                <strong>user:</strong> why
+                <div style="font-size:0.8em; margin-top:5px; color:#78909c">
+                    January 26, 2025 at 2:58:41 AM UTC+8
+                </div>
+            </div>
+            <div class="message assistant-message">
+                <strong>ai:</strong> I heard you say: why
+                <div style="font-size:0.8em; margin-top:5px; color:#78909c">
+                    January 26, 2025 at 2:58:41 AM UTC+8
+                </div>
+            </div>
+        </div>
+        <div id="status">Connecting...</div>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('messages');
+        const statusElement = document.getElementById('status');
+        
+        // Import Firebase config
+        import firebaseConfig from './js/firebase.js';
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Connect to WebSocket server for conversations
+        const ws = new WebSocket('wss://generativelanguage.googleapis.com/ws');
+
+        ws.onopen = () => {
+            statusElement.textContent = 'Connected - Listening...';
+
+            // Initialize Speech Recognition
+            const recognition = new (webkitSpeechRecognition || SpeechRecognition)();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                }
+                if (transcript) {
+                    appendMessage('user', transcript, new Date());
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+            };
+
+            recognition.start();
+        };
+
+       ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.speaker === 'ai') {
+                appendMessage(data.speaker, data.text, new Date(data.timestamp));
+            }
+        };
+
+        ws.onerror = (error) => {
+            statusElement.textContent = 'Connection error - Trying to reconnect...';
+            console.error('WebSocket error:', error);
+        };
+
+        function appendMessage(speaker, text, timestamp) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${speaker}-message`;
+            messageDiv.innerHTML = `
+                <strong>${speaker}:</strong> ${text}
+                <div style="font-size:0.8em; margin-top:5px; color:#78909c">
+                    ${timestamp.toLocaleTimeString()}
+                </div>
+            `;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Save conversation to Firebase
+            db.collection('conversations').add({
+                aiMessage: speaker === 'ai' ? text : '',
+                userMessage: speaker === 'user' ? text : '',
+                createdAt: firebase.firestore.Timestamp.fromDate(timestamp)
+            }).then((docRef) => {
+                console.log('Conversation saved to Firebase with ID:', docRef.id);
+            }).catch((error) => {
+                console.error('Error saving conversation to Firebase:', error);
+            });
+        }
+    </script>
+</body>
+</html>

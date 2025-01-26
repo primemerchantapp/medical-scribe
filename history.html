@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scribe History</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, #f9f9f9, #ffffff);
+            color: #333;
+            overflow-x: hidden;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .list-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .list-item-patient {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .list-item-icon {
+            margin-left: 20px;
+            color: #4caf50;
+            font-size: 1.2rem;
+        }
+
+        .list-item-edit {
+            margin-left: 20px;
+            color: #777;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .list-item-edit:hover {
+            color: #4caf50;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://cdn-icons-png.flaticon.com/512/2967/2967178.png" alt="Medic Logo">
+        </div>
+        <h1>Scribe History</h1>
+        <ul class="list" id="scribeList">
+            <!-- List items will be dynamically added here -->
+        </ul>
+    </div>
+
+    <!-- Firebase and Firestore Integration -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBe9a58zaQCrBSGeWwcIVa_PnZABoH6zV4",
+            authDomain: "tudds-ccd0wn.firebaseapp.com",
+            databaseURL: "https://tudds-ccd0wn-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tudds-ccd0wn",
+            storageBucket: "tudds-ccd0wn.appspot.com",
+            messagingSenderId: "786974954352",
+            appId: "1:786974954352:web:696d4fce818f14659bb5b5",
+            measurementId: "G-CEQL4E8CW3"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to fetch scribe data from Firestore
+        async function fetchScribeData() {
+            const scribeList = document.getElementById('scribeList');
+            scribeList.innerHTML = ''; // Clear existing list
+
+            try {
+                // Query Firestore for scribe documents, ordered by created_at in descending order
+                const q = query(collection(db, "scribe_documents"), orderBy("created_at", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list-item';
+                    listItem.innerHTML = `
+                        <div class="list-item-content">
+                            <div class="list-item-title">${data.title}</div>
+                            <div class="list-item-patient">${data.patientName}</div>
+                        </div>
+                        <div class="list-item-icon">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        <div class="list-item-edit">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                    `;
+
+                    // Add click event to navigate to details.html with the document ID
+                    listItem.addEventListener('click', () => {
+                        window.location.href = `details.html?id=${doc.id}`;
+                    });
+
+                    scribeList.appendChild(listItem);
+                });
+            } catch (e) {
+                console.error("Error fetching documents: ", e);
+                alert("Failed to fetch scribe history. Please try again.");
+            }
+        }
+
+        // Fetch scribe data when the page loads
+        window.onload = fetchScribeData;
+    </script>
+</body>
+
+</html>
